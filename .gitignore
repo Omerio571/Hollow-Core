@@ -1,0 +1,16 @@
+
+# EasierCpp
+/.easiercpp/
+/.cpplivelab/
+
+# Visual Studio
+/.vs/
+
+# CMake build outputs
+/build/
+/out/
+
+# Other build directories
+/x64/
+/Debug/
+/Release/
