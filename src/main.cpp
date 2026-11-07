@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "Config.hpp"
 
 int main()
 {

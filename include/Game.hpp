@@ -1,13 +1,11 @@
 #pragma once
 
-// C++ headers
-#include <string>
-
 // Outer Headers
 #include <raylib.h>
 
 // My Headers
 #include "Config.hpp"
+
 
 class Game
 {
@@ -24,11 +22,26 @@ public:
 
 private:
 	// Handles the players actions
-	void HandleInput();
+	void HandleInput(float dt);
+
+	// Advance the world's state
+	void Update(float dt);
 
 	// Display the current Game State
 	void Render();
 
-	// Advance the world's state
-	void Update(float dt);
+	// Temporarily being implemented in Game
+	
+	// Grid & textures
+	Texture2D grassTexture{};
+
+	void RenderGrid();
+	bool InitTextures(Texture2D& theTexture, const char* texturePath);
+	void UninitTextures(Texture2D& theTexture);
+
+	// camera
+	Camera2D camera{};
+
+	void InitCamera(Camera2D& cam);
+	void CamInputs(Camera2D& cam, float dt);
 };
