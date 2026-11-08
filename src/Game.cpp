@@ -1,7 +1,14 @@
+// My headers
+#include "Config.hpp"
 #include "Game.hpp"
 #include "Isometric.hpp"
 
+// outer libraries
 #include <raymath.h>
+
+// C++ libraries
+#include <cmath>
+#include <string>
 
 // Public functions
 
@@ -17,7 +24,9 @@ bool Game::Initialize()
 
 	SetTargetFPS(targetFPS); // uses Config
 
-	if (!InitTextures(grassTexture, grassTilePath)) // uses Config
+	if (!InitTextures(grassTexture, grassTilePath) || 
+		!InitTextures(hoverTexture, tileHoverIndicator) ||
+		!InitTextures(buildTexture, tileBuildIndicator)) // uses Config
 	{
 		ShutDown();
 		return false;
@@ -44,30 +53,50 @@ void Game::Run()
 void Game::ShutDown()
 {
 	UninitTextures(grassTexture);
+	UninitTextures(hoverTexture);
+	UninitTextures(buildTexture);
 	CloseWindow();
 }
+
+
+// Temporary
+
+// Camera
+
+Camera2D Game::GetCam() const
+{
+	return camera;
+}
+
 
 // Private functions
 
 void Game::HandleInput(float dt)
 {
 	CamInputs(camera, dt);
+	HandleMouseMode();
 }
 
 void Game::Update(float dt)
 {
+	UpdateHoveredTile();
 }
 
 void Game::Render()
 {
+	Camera2D renderCam = GetRenderCamera();
+
 	BeginDrawing();
 	ClearBackground(BLACK);
 
-	BeginMode2D(camera);
+	BeginMode2D(renderCam);
 
 	RenderGrid();
+	RenderHoveredTile();
 
 	EndMode2D();
+
+	DisplayCurrentTilePos();
 
 	EndDrawing();
 }
@@ -96,7 +125,7 @@ void Game::RenderGrid()
 					static_cast<float>(y)
 				);
 
-			position.x -= grassTexture.width / 2.f;
+			position.x -= Config::halfTileWidth;
 
 			DrawTextureV(grassTexture, position, WHITE);
 		}
@@ -123,6 +152,8 @@ void Game::UninitTextures(Texture2D& theTexture)
 	{
 		UnloadTexture(theTexture);
 	}
+
+	theTexture = {};
 }
 
 void Game::InitCamera(Camera2D& cam)
@@ -135,8 +166,8 @@ void Game::InitCamera(Camera2D& cam)
 		(Config::gridHeight - 1) / 2.f
 	);
 
-	cam.rotation = 0.f;
-	cam.zoom = 1.f;
+	cam.rotation = Config::initRotation;
+	cam.zoom = Config::initZoom;
 }
 
 void Game::CamInputs(Camera2D& cam, float dt)
@@ -153,7 +184,7 @@ void Game::CamInputs(Camera2D& cam, float dt)
 	{
 		direction = Vector2Normalize(direction);
 
-		float distance = Config::camSpeed * dt / camera.zoom;
+		float distance = Config::camSpeed * dt / cam.zoom;
 
 		Vector2 movement = Vector2Scale(direction, distance);
 
@@ -162,5 +193,74 @@ void Game::CamInputs(Camera2D& cam, float dt)
 
 	float wheel = GetMouseWheelMove();
 
-	cam.zoom = Clamp(cam.zoom + wheel * Config::zoomIntensity, Config::minZoom, Config::maxZoom);
+	cam.zoom = Clamp(cam.zoom + wheel * Config::zoomStep, Config::minZoom, Config::maxZoom);
 }
+
+Camera2D Game::GetRenderCamera() const
+{
+	Camera2D renderCam = GetCam();
+
+	const float zoom = renderCam.zoom;
+
+	renderCam.target.x = std::round(renderCam.target.x * zoom) / zoom;
+	renderCam.target.y = std::round(renderCam.target.y * zoom) / zoom;
+
+	renderCam.offset.x = std::round(renderCam.offset.x);
+	renderCam.offset.y = std::round(renderCam.offset.y);
+
+	return renderCam;
+}
+
+// print mouse Pos
+
+void Game::DisplayCurrentTilePos()
+{
+	Vector2 isoCoOrdinate = IsometricToGrid(GetMousePosition(), GetRenderCamera());
+
+	///////////////////////////////////////////////////////////////////////////////
+	std::string isoPosStr = 
+		"tilePos: " + 
+		std::to_string((int)std::floor(isoCoOrdinate.x)) +
+		", " +
+		std::to_string((int)std::floor(isoCoOrdinate.y)); 
+	///////////////////////////////////////////////////////////////////////////////
+
+	DrawText(isoPosStr.c_str(), 20, 20, 20, Config::textColor);
+}
+
+// Hover Tile
+
+void Game::HandleMouseMode()
+{
+	if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::BuildingPlacement) mouseMode = MouseMode::Normal;
+	else if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::Normal) mouseMode = MouseMode::BuildingPlacement;
+}
+
+void Game::UpdateHoveredTile()
+{
+	hoveredTile = IsometricToGrid(GetMousePosition(), GetRenderCamera());
+
+	hoveredTile.x = std::floor(hoveredTile.x);
+	hoveredTile.y = std::floor(hoveredTile.y);
+
+	if (hoveredTile.x < 0 || hoveredTile.x >= Config::gridWidth ||
+		hoveredTile.y < 0 || hoveredTile.y >= Config::gridHeight)
+	{
+		hoveredTileColor = Config::invalHoverColor;
+		return;
+	}
+
+	hoveredTileColor = Config::validHoverColor;
+}
+
+void Game::RenderHoveredTile()
+{
+	Texture2D texture = (mouseMode == MouseMode::Normal) ? hoverTexture : buildTexture;
+
+	Vector2 position = GridToIsometric(hoveredTile.x, hoveredTile.y);
+
+	position.x -= texture.width / 2.f;
+
+	DrawTextureV(texture, position, hoveredTileColor);
+}
+

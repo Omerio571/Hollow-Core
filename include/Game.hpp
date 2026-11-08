@@ -3,10 +3,6 @@
 // Outer Headers
 #include <raylib.h>
 
-// My Headers
-#include "Config.hpp"
-
-
 class Game
 {
 public:
@@ -19,6 +15,12 @@ public:
 
 	// Release resources acquired during initialization and gameplay
 	void ShutDown();
+
+	// Temporary 
+	
+	// camera
+
+	Camera2D GetRenderCamera() const;
 
 private:
 	// Handles the players actions
@@ -44,4 +46,27 @@ private:
 
 	void InitCamera(Camera2D& cam);
 	void CamInputs(Camera2D& cam, float dt);
+	Camera2D GetCam() const;
+
+	// Testing
+	void DisplayCurrentTilePos();
+
+	// Input & Rendering
+	Texture2D hoverTexture{};
+	Texture2D buildTexture{};
+	Vector2 hoveredTile{};
+
+	enum class MouseMode
+	{
+		Normal,
+		BuildingPlacement
+	};
+
+	MouseMode mouseMode = MouseMode::Normal;
+	Color hoveredTileColor{};
+
+	void HandleMouseMode();
+
+	void UpdateHoveredTile();
+	void RenderHoveredTile();
 };
