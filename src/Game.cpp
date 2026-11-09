@@ -25,12 +25,18 @@ bool Game::Initialize()
 	SetTargetFPS(targetFPS); // uses Config
 
 	if (!InitTextures(grassTexture, grassTilePath) || 
+		!InitTextures(dirtTexture, dirtTilePath) ||
 		!InitTextures(hoverTexture, tileHoverIndicator) ||
 		!InitTextures(buildTexture, tileBuildIndicator)) // uses Config
 	{
 		ShutDown();
 		return false;
 	}
+
+	Tile* tile = tileMap.GetTile(8, 8);
+	 
+	if (tile)
+		tile->terrain = TerrainType::Grass;
 		
 	InitCamera(camera);
 
@@ -53,6 +59,8 @@ void Game::Run()
 void Game::ShutDown()
 {
 	UninitTextures(grassTexture);
+	UninitTextures(dirtTexture);
+
 	UninitTextures(hoverTexture);
 	UninitTextures(buildTexture);
 	CloseWindow();
@@ -92,6 +100,7 @@ void Game::Render()
 	BeginMode2D(renderCam);
 
 	RenderGrid();
+
 	RenderHoveredTile();
 
 	EndMode2D();
@@ -127,7 +136,17 @@ void Game::RenderGrid()
 
 			position.x -= Config::halfTileWidth;
 
-			DrawTextureV(grassTexture, position, WHITE);
+			Tile* tile = tileMap.GetTile(x, y); 
+			
+			if (!tile)
+				continue;
+
+			const Texture2D& texture =
+				(tile->terrain == TerrainType::Grass)
+				? grassTexture
+				: dirtTexture;
+
+			DrawTextureV(texture, position, tile->tileColor);
 		}
 	}
 }
@@ -215,14 +234,12 @@ Camera2D Game::GetRenderCamera() const
 
 void Game::DisplayCurrentTilePos()
 {
-	Vector2 isoCoOrdinate = IsometricToGrid(GetMousePosition(), GetRenderCamera());
-
 	///////////////////////////////////////////////////////////////////////////////
 	std::string isoPosStr = 
 		"tilePos: " + 
-		std::to_string((int)std::floor(isoCoOrdinate.x)) +
+		std::to_string((int)hoveredTile.x) +
 		", " +
-		std::to_string((int)std::floor(isoCoOrdinate.y)); 
+		std::to_string((int)hoveredTile.y);
 	///////////////////////////////////////////////////////////////////////////////
 
 	DrawText(isoPosStr.c_str(), 20, 20, 20, Config::textColor);
@@ -232,8 +249,10 @@ void Game::DisplayCurrentTilePos()
 
 void Game::HandleMouseMode()
 {
-	if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::BuildingPlacement) mouseMode = MouseMode::Normal;
-	else if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::Normal) mouseMode = MouseMode::BuildingPlacement;
+	if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::BuildingPlacement) 
+		mouseMode = MouseMode::Normal;
+	else if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::Normal) 
+		mouseMode = MouseMode::BuildingPlacement;
 }
 
 void Game::UpdateHoveredTile()
@@ -243,8 +262,7 @@ void Game::UpdateHoveredTile()
 	hoveredTile.x = std::floor(hoveredTile.x);
 	hoveredTile.y = std::floor(hoveredTile.y);
 
-	if (hoveredTile.x < 0 || hoveredTile.x >= Config::gridWidth ||
-		hoveredTile.y < 0 || hoveredTile.y >= Config::gridHeight)
+	if (!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
 	{
 		hoveredTileColor = Config::invalHoverColor;
 		return;
@@ -255,7 +273,7 @@ void Game::UpdateHoveredTile()
 
 void Game::RenderHoveredTile()
 {
-	Texture2D texture = (mouseMode == MouseMode::Normal) ? hoverTexture : buildTexture;
+	const Texture2D& texture = (mouseMode == MouseMode::Normal) ? hoverTexture : buildTexture;
 
 	Vector2 position = GridToIsometric(hoveredTile.x, hoveredTile.y);
 

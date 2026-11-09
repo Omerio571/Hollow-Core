@@ -3,6 +3,10 @@
 // Outer Headers
 #include <raylib.h>
 
+// my Headers
+#include "TileMap.hpp"
+#include "Config.hpp"
+
 class Game
 {
 public:
@@ -36,6 +40,7 @@ private:
 	
 	// Grid & textures
 	Texture2D grassTexture{};
+	Texture2D dirtTexture{};
 
 	void RenderGrid();
 	bool InitTextures(Texture2D& theTexture, const char* texturePath);
@@ -69,4 +74,6 @@ private:
 
 	void UpdateHoveredTile();
 	void RenderHoveredTile();
+
+	TileMap tileMap{ Config::gridWidth, Config::gridHeight };
 };

@@ -9,6 +9,8 @@ namespace Config
 
 	// Asset location
 	inline constexpr char grassTilePath[] = "assets/tiles/GrassBlock.png";
+	inline constexpr char dirtTilePath[] = "assets/tiles/DirtBlock.png";
+
 	inline constexpr char tileHoverIndicator[] = "assets/helperUI/tileHoverIndicator.png";
 	inline constexpr char tileBuildIndicator[] = "assets/helperUI/tileBuildIndicator.png";
 
@@ -19,8 +21,8 @@ namespace Config
 	inline constexpr int targetFPS = 60;
 
 	// World Configurations
-	inline constexpr int gridWidth = 8;
-	inline constexpr int gridHeight = 6;
+	inline constexpr int gridWidth = 10;
+	inline constexpr int gridHeight = 10;
 
 	// Tile ground footprint dimensions, in pixels
 	inline constexpr float tileWidth = 32.0f;
@@ -41,6 +43,6 @@ namespace Config
 	// UI colours
 
 	inline constexpr Color textColor = BLUE;
-	inline constexpr Color validHoverColor = { 180,255,200, 200 };
-	inline constexpr Color invalHoverColor = { 255,180,200, 200 };
+	inline constexpr Color validHoverColor = { 180, 255, 200, 200 };
+	inline constexpr Color invalHoverColor = { 255, 180, 200, 200 };
 }
