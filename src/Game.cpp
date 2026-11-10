@@ -82,12 +82,15 @@ Camera2D Game::GetCam() const
 void Game::HandleInput(float dt)
 {
 	CamInputs(camera, dt);
+
 	HandleMouseMode();
+	UpdateHoverOnTile();
+
+	HandleTerrainEditing();
 }
 
 void Game::Update(float dt)
 {
-	UpdateHoveredTile();
 }
 
 void Game::Render()
@@ -255,7 +258,7 @@ void Game::HandleMouseMode()
 		mouseMode = MouseMode::BuildingPlacement;
 }
 
-void Game::UpdateHoveredTile()
+void Game::UpdateHoverOnTile()
 {
 	hoveredTile = IsometricToGrid(GetMousePosition(), GetRenderCamera());
 
@@ -282,3 +285,27 @@ void Game::RenderHoveredTile()
 	DrawTextureV(texture, position, hoveredTileColor);
 }
 
+
+// Tile Editor
+
+void Game::HandleTerrainEditing()
+{
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && mouseMode == MouseMode::Normal)
+	{
+		Tile* currentTile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
+
+		if(currentTile == nullptr)
+			return;
+
+		ToggleTileTerrain(currentTile);
+	}
+}
+
+void Game::ToggleTileTerrain(Tile* theTile)
+{
+	if (theTile->terrain == TerrainType::Dirt)
+		theTile->terrain = TerrainType::Grass;
+
+	else if (theTile->terrain == TerrainType::Grass)
+		theTile->terrain = TerrainType::Dirt;
+}

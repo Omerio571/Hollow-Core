@@ -21,10 +21,10 @@ Tile* TileMap::GetTile(int x, int y)
 
 int TileMap::GetWidth() const
 {
-	return 0;
+	return width;
 }
 
 int TileMap::GetHeight() const
 {
-	return 0;
+	return height;
 }

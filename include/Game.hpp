@@ -72,8 +72,11 @@ private:
 
 	void HandleMouseMode();
 
-	void UpdateHoveredTile();
+	void UpdateHoverOnTile();
 	void RenderHoveredTile();
+
+	void HandleTerrainEditing();
+	void ToggleTileTerrain(Tile* theTile);
 
 	TileMap tileMap{ Config::gridWidth, Config::gridHeight };
 };

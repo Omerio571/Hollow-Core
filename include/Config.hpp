@@ -38,7 +38,7 @@ namespace Config
 	inline constexpr float maxZoom = 8.f;
 
 	inline constexpr float initRotation = 0.f;
-	inline constexpr float initZoom = 2.f;
+	inline constexpr float initZoom = 3.f;
 
 	// UI colours
 
