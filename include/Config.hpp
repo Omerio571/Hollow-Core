@@ -5,7 +5,7 @@
 namespace Config
 {
 	// The games name
-	inline constexpr char gameName[] = "Hollow Core";
+	inline constexpr char gameName[] = "Hollow Core"; 
 
 	// Asset location
 	inline constexpr char grassTilePath[] = "assets/tiles/GrassBlock.png";
@@ -14,8 +14,10 @@ namespace Config
 	inline constexpr char tileHoverIndicator[] = "assets/helperUI/tileHoverIndicator.png";
 	inline constexpr char tileBuildIndicator[] = "assets/helperUI/tileBuildIndicator.png";
 
+	inline constexpr char rockBlockPath[] = "assets/Environment/Non-Living/rockOneSmall.png"; 
+
 	// Window Configurations
-	inline constexpr int windowWidth = 800;
+	inline constexpr int windowWidth = 800; 
 	inline constexpr int windowHeight = 600;
 
 	inline constexpr int targetFPS = 60;
@@ -43,6 +45,8 @@ namespace Config
 	// UI colours
 
 	inline constexpr Color textColor = BLUE;
-	inline constexpr Color validHoverColor = { 180, 255, 200, 200 };
-	inline constexpr Color invalHoverColor = { 255, 180, 200, 200 };
+
+	// valid / invalid color used for Hover and Building preview
+	inline constexpr Color validColor = { 180, 255, 200, 200 };
+	inline constexpr Color invalidColor = { 255, 180, 200, 200 };
 }

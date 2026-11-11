@@ -26,19 +26,21 @@ bool Game::Initialize()
 
 	if (!InitTextures(grassTexture, grassTilePath) || 
 		!InitTextures(dirtTexture, dirtTilePath) ||
-		!InitTextures(hoverTexture, tileHoverIndicator) ||
-		!InitTextures(buildTexture, tileBuildIndicator)) // uses Config
+		!InitTextures(rockTexture, rockBlockPath) ||
+		!InitTextures(hoverModeTexture, tileHoverIndicator) ||
+		!InitTextures(buildModeTexture, tileBuildIndicator)) // uses Config
 	{
 		ShutDown();
 		return false;
 	}
 
 	Tile* tile = tileMap.GetTile(8, 8);
-	 
+
 	if (tile)
 		tile->terrain = TerrainType::Grass;
 		
-	InitCamera(camera);
+	InitCamera(camera); 
+	// InitMousePos(); Might implement later
 
 	return true;
 }
@@ -61,8 +63,10 @@ void Game::ShutDown()
 	UninitTextures(grassTexture);
 	UninitTextures(dirtTexture);
 
-	UninitTextures(hoverTexture);
-	UninitTextures(buildTexture);
+	UninitTextures(rockTexture);
+
+	UninitTextures(hoverModeTexture);
+	UninitTextures(buildModeTexture);
 	CloseWindow();
 }
 
@@ -87,6 +91,8 @@ void Game::HandleInput(float dt)
 	UpdateHoverOnTile();
 
 	HandleTerrainEditing();
+	HandlePlaceBuilding();
+	HandleRemoveBuilding();
 }
 
 void Game::Update(float dt)
@@ -106,11 +112,23 @@ void Game::Render()
 
 	RenderHoveredTile();
 
+	RenderPreviewBuild();
+
+	RenderBuildings();
+
 	EndMode2D();
 
 	DisplayCurrentTilePos();
 
 	EndDrawing();
+}
+
+
+// Setting initialization
+
+void Game::InitMousePos()
+{
+	SetMousePosition(Config::windowWidth / 2.f, Config::windowHeight / 2.f);
 }
 
 
@@ -252,7 +270,7 @@ void Game::DisplayCurrentTilePos()
 
 void Game::HandleMouseMode()
 {
-	if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::BuildingPlacement) 
+	if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::BuildingPlacement)
 		mouseMode = MouseMode::Normal;
 	else if (IsKeyPressed(KEY_B) && mouseMode == MouseMode::Normal) 
 		mouseMode = MouseMode::BuildingPlacement;
@@ -265,24 +283,18 @@ void Game::UpdateHoverOnTile()
 	hoveredTile.x = std::floor(hoveredTile.x);
 	hoveredTile.y = std::floor(hoveredTile.y);
 
-	if (!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
-	{
-		hoveredTileColor = Config::invalHoverColor;
-		return;
-	}
-
-	hoveredTileColor = Config::validHoverColor;
+	SetTileValitidyColor();
 }
 
 void Game::RenderHoveredTile()
 {
-	const Texture2D& texture = (mouseMode == MouseMode::Normal) ? hoverTexture : buildTexture;
+	const Texture2D& texture = (mouseMode == MouseMode::Normal) ? hoverModeTexture : buildModeTexture;
 
 	Vector2 position = GridToIsometric(hoveredTile.x, hoveredTile.y);
 
 	position.x -= texture.width / 2.f;
 
-	DrawTextureV(texture, position, hoveredTileColor);
+	DrawTextureV(texture, position, tileValidityColor);
 }
 
 
@@ -290,6 +302,9 @@ void Game::RenderHoveredTile()
 
 void Game::HandleTerrainEditing()
 {
+	if(!IsItValidTile())
+		return;
+
 	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && mouseMode == MouseMode::Normal)
 	{
 		Tile* currentTile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
@@ -302,10 +317,155 @@ void Game::HandleTerrainEditing()
 }
 
 void Game::ToggleTileTerrain(Tile* theTile)
-{
+{ 
 	if (theTile->terrain == TerrainType::Dirt)
 		theTile->terrain = TerrainType::Grass;
 
 	else if (theTile->terrain == TerrainType::Grass)
 		theTile->terrain = TerrainType::Dirt;
+}
+
+bool Game::IsItValidTile()
+{
+	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
+
+	if(tile == nullptr || !tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
+			return false;
+	
+	return !tile->occupied;
+}
+
+int Game::GetBuildingVectorIndex()
+{
+	auto building = std::find_if(buildings.begin(), buildings.end(), [this](const Building& b) 
+	{
+		return b.x == hoveredTile.x && b.y == hoveredTile.y;
+	});
+
+	if(building != buildings.end())
+	{
+		return std::distance(buildings.begin(), building);
+	}
+
+    return -1;
+}
+
+bool Game::IsItBreakableBuilding()
+{
+	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
+
+	if(tile == nullptr || !tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
+		return false;
+
+	int buildingIndex = GetBuildingVectorIndex();
+
+	if(buildingIndex == -1)
+		return false;
+
+	if(buildings[buildingIndex].breakable == false)
+		return false;
+
+	return true;
+}
+
+void Game::SetTileValitidyColor()
+{
+	if (IsItValidTile())
+	{
+		tileValidityColor = Config::validColor;
+		return;
+	}
+
+	tileValidityColor = Config::invalidColor;
+}
+
+void Game::RenderPreviewBuild()
+{
+	if(mouseMode == MouseMode::Normal)
+		return;
+
+	Vector2 position = GridToIsometric(hoveredTile.x, hoveredTile.y);
+
+	position.x -= rockTexture.width / 2.f;
+	position.y -= rockTexture.height / 1.6f; // This gets the perfect centering for my specific sprite might have to change conventions later on for general verison
+
+	DrawTexture(rockTexture, position.x, position.y, tileValidityColor);
+}
+
+void Game::HandlePlaceBuilding()
+{
+	if (mouseMode == MouseMode::Normal)
+		return;
+
+	if (!IsItValidTile())
+		return;
+
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+	{
+		Building building{};
+		building.breakable = true;
+		building.previewColor = WHITE;
+		building.type = BuildingType::Rock;
+		building.x = hoveredTile.x;
+		building.y = hoveredTile.y;
+
+		buildings.push_back(building);
+
+		TraceLog(LOG_INFO, "Building placed at: %f, %f", hoveredTile.x, hoveredTile.y);
+
+		Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
+
+		tile->occupied = true;
+		TraceLog(LOG_INFO, "Tile: %f, %f, Occupied: %s", hoveredTile.x, hoveredTile.y, tile->occupied ? "true" : "false");
+	}
+}
+
+void Game::HandleRemoveBuilding()
+{
+	if (mouseMode == MouseMode::Normal)
+		return;
+
+	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
+
+	if(!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y) || !IsItBreakableBuilding())
+		return;
+
+	// TraceLog(LOG_INFO, "Tile Is Inside and Is Breakable");
+
+	if(tile == nullptr || !tile->occupied)
+		return;
+
+	// TraceLog(LOG_INFO, "Tile exists and is occupied");
+
+	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
+	{
+		int buildingIndex = GetBuildingVectorIndex();
+
+		if (buildingIndex == -1)
+			return;
+
+		buildings.erase(buildings.begin() + buildingIndex);
+
+		TraceLog(LOG_INFO, "Building removed at: %f, %f", hoveredTile.x, hoveredTile.y);
+
+		tile->occupied = false;
+
+		TraceLog(LOG_INFO, "Tile: %f, %f, Occupied: %s", hoveredTile.x, hoveredTile.y, tile->occupied ? "true" : "false");
+	}
+}
+
+void Game::RenderBuildings()
+{
+	if(buildings.empty())
+		return;
+
+	for (const Building& building : buildings)
+	{
+		Vector2 position = GridToIsometric(building.x, building.y);
+
+		position.x -= rockTexture.width / 2.f;
+		position.y -= rockTexture.height / 1.6f;
+
+		DrawTexture(rockTexture, position.x, position.y, building.previewColor);
+	}
 }

@@ -17,7 +17,7 @@ Vector2 IsometricToGrid(Vector2 screenPos, const Camera2D& cam)
 	float B = worldPos2D.y / Config::halfTileHeight;
 
 	Vector2 gridPos =
-	{
+	{ 
 		(A + B) / 2.f,
 		(B - A) / 2.f
 	};

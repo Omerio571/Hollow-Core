@@ -5,6 +5,7 @@
 
 // my Headers
 #include "TileMap.hpp"
+#include "Building.hpp"
 #include "Config.hpp"
 
 class Game
@@ -38,6 +39,9 @@ private:
 
 	// Temporarily being implemented in Game
 	
+	// Initialize settings
+	void InitMousePos();
+
 	// Grid & textures
 	Texture2D grassTexture{};
 	Texture2D dirtTexture{};
@@ -57,8 +61,10 @@ private:
 	void DisplayCurrentTilePos();
 
 	// Input & Rendering
-	Texture2D hoverTexture{};
-	Texture2D buildTexture{};
+	Texture2D hoverModeTexture{};
+	Texture2D buildModeTexture{};
+	Texture2D rockTexture{};
+
 	Vector2 hoveredTile{};
 
 	enum class MouseMode
@@ -68,7 +74,7 @@ private:
 	};
 
 	MouseMode mouseMode = MouseMode::Normal;
-	Color hoveredTileColor{};
+	Color tileValidityColor{};
 
 	void HandleMouseMode();
 
@@ -79,4 +85,19 @@ private:
 	void ToggleTileTerrain(Tile* theTile);
 
 	TileMap tileMap{ Config::gridWidth, Config::gridHeight };
+
+	// Building Blocks
+	std::vector<Building> buildings;
+
+	bool IsItValidTile();
+	int GetBuildingVectorIndex();
+	bool IsItBreakableBuilding();
+
+	void SetTileValitidyColor();
+
+	void RenderPreviewBuild();
+	void HandlePlaceBuilding();
+	void HandleRemoveBuilding();
+
+	void RenderBuildings();
 };

@@ -10,7 +10,7 @@ int main()
         TraceLog(LOG_ERROR, "%s could not initialize!", Config::gameName);
         return 1;
     }
-
+ 
     game.Run();
     game.ShutDown();
 
