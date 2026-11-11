@@ -4,7 +4,8 @@
 
 enum class BuildingType
 {
-	Rock
+	Rock,
+	Bush,
 };
 
 struct Building

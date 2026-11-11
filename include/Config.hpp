@@ -14,8 +14,9 @@ namespace Config
 	inline constexpr char tileHoverIndicator[] = "assets/helperUI/tileHoverIndicator.png";
 	inline constexpr char tileBuildIndicator[] = "assets/helperUI/tileBuildIndicator.png";
 
-	inline constexpr char rockBlockPath[] = "assets/Environment/Non-Living/rockOneSmall.png"; 
-
+	inline constexpr char rockBlockPath[] = "assets/Environment/Non-Living/Rock.png";
+	inline constexpr char bushBlockPath[] = "assets/Environment/Living/Bush.png";
+	
 	// Window Configurations
 	inline constexpr int windowWidth = 800; 
 	inline constexpr int windowHeight = 600;

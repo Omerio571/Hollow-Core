@@ -63,7 +63,6 @@ private:
 	// Input & Rendering
 	Texture2D hoverModeTexture{};
 	Texture2D buildModeTexture{};
-	Texture2D rockTexture{};
 
 	Vector2 hoveredTile{};
 
@@ -89,7 +88,7 @@ private:
 	// Building Blocks
 	std::vector<Building> buildings;
 
-	int GetBuildingVectorIndex();
+	int GetBuildingVectorIndex(int x, int y);
 	bool IsItBreakableBuilding( int buildingIndex );
 
 	void UpdateTileValidityColor();
@@ -97,7 +96,7 @@ private:
 
 	void RenderPreviewBuild();
 
-	bool CanModifyTile();
+	bool CanModifyTile(int x, int y);
 	bool CanRemoveBuilding( int buildingIndex );
 	bool TryPlaceBuilding(int x, int y, BuildingType type);
 	bool TryRemoveBuilding(int x, int y);
@@ -106,4 +105,15 @@ private:
 	void HandleRemoveBuildingWithMouse();
 
 	void RenderBuildings();
+
+	// Introduce Multiple Buildings
+	BuildingType selectedBuilding = BuildingType::Rock;
+
+	Texture2D rockTexture{};
+	Texture2D bushTexture{};
+
+	Texture* selectedTexture = &rockTexture;
+
+	void SelectBuilding(BuildingType type);
+	void HandleSelectingABuilding();
 };
