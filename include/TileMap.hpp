@@ -10,9 +10,11 @@ class TileMap
 public:
 	TileMap(int width, int height);
 
-	bool IsInside(int x, int y) const;
+	bool IsInside(const int x, const int y) const;
+	void ChangeOccupancy(const int x, const int y, bool changeOccupancyTo);
+	bool GetOccupancy(const int x, const int y);
 
-	Tile* GetTile(int x, int y);
+	Tile* GetTile(const int x, const int y);
 
 	int GetWidth() const;
 	int GetHeight() const;

@@ -40,7 +40,7 @@ private:
 	// Temporarily being implemented in Game
 	
 	// Initialize settings
-	void InitMousePos();
+	///// Empty for now
 
 	// Grid & textures
 	Texture2D grassTexture{};
@@ -78,7 +78,7 @@ private:
 
 	void HandleMouseMode();
 
-	void UpdateHoverOnTile();
+	void UpdateWorldMousePos();
 	void RenderHoveredTile();
 
 	void HandleTerrainEditing();
@@ -89,13 +89,19 @@ private:
 	// Building Blocks
 	std::vector<Building> buildings;
 
-	bool IsItValidTile();
 	int GetBuildingVectorIndex();
 	bool IsItBreakableBuilding();
 
-	void SetTileValitidyColor();
+	void UpdateTileValidityColor();
+	Vector2 CalcBuildingOffset(Vector2 buildingPosition);
 
 	void RenderPreviewBuild();
+
+	bool CanModifyTile();
+	bool CanRemoveBuilding();
+	void TryPlaceBuilding();
+	void TryRemoveBuilding();
+
 	void HandlePlaceBuilding();
 	void HandleRemoveBuilding();
 

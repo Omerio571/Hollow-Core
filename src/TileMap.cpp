@@ -6,12 +6,31 @@ TileMap::TileMap(int width, int height)
 	tiles(width * height)
 {}
 
-bool TileMap::IsInside(int x, int y) const
+bool TileMap::IsInside(const int x, const int y) const
 {
 	return x >= 0 && x < width && y >= 0 && y < height;
 }
 
-Tile* TileMap::GetTile(int x, int y)
+void TileMap::ChangeOccupancy(const int x, const int y, bool changeOccupancyTo)
+{
+	Tile* tile = GetTile(x, y);
+	if (tile)
+	{
+		tile->occupied = changeOccupancyTo;
+	}
+}
+
+bool TileMap::GetOccupancy(const int x, const int y)
+{
+	const Tile* tile = GetTile(x, y);
+	if (tile)
+	{
+		return tile->occupied;
+	}
+	return true;
+}
+
+Tile* TileMap::GetTile(const int x, const int y)
 {
 	if(!IsInside(x,y))
 		return nullptr;

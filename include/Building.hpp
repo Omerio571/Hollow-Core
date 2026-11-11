@@ -16,5 +16,5 @@ struct Building
 
 	bool breakable{};
 	
-	Color previewColor{};
+	Color tint{};
 };
