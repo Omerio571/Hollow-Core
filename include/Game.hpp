@@ -90,7 +90,7 @@ private:
 	std::vector<Building> buildings;
 
 	int GetBuildingVectorIndex();
-	bool IsItBreakableBuilding();
+	bool IsItBreakableBuilding( int buildingIndex );
 
 	void UpdateTileValidityColor();
 	Vector2 CalcBuildingOffset(Vector2 buildingPosition);
@@ -98,9 +98,9 @@ private:
 	void RenderPreviewBuild();
 
 	bool CanModifyTile();
-	bool CanRemoveBuilding();
-	void TryPlaceBuilding();
-	void TryRemoveBuilding();
+	bool CanRemoveBuilding( int buildingIndex );
+	bool TryPlaceBuilding(int x, int y, BuildingType type);
+	bool TryRemoveBuilding(int x, int y);
 
 	void HandlePlaceBuildingWithMouse();
 	void HandleRemoveBuildingWithMouse();

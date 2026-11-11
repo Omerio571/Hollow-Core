@@ -90,6 +90,8 @@ void Game::HandleInput(float dt)
 
 	HandleMouseMode();
 
+	UpdateWorldMousePos(); // Required to be here even though its update, because handles are dependant on it
+
 	HandleTerrainEditing();
 	HandlePlaceBuildingWithMouse();
 	HandleRemoveBuildingWithMouse();
@@ -97,9 +99,7 @@ void Game::HandleInput(float dt)
 }
 
 void Game::Update(float dt)
-{
-	UpdateWorldMousePos();
-	
+{	
 	UpdateTileValidityColor();
 }
 
@@ -335,16 +335,14 @@ int Game::GetBuildingVectorIndex()
     return -1;
 }
 
-bool Game::IsItBreakableBuilding()
+bool Game::IsItBreakableBuilding( int buildingIndex )
 {
 	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
 
 	if(!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
 		return false;
 
-	int buildingIndex = GetBuildingVectorIndex();
-
-	if(buildingIndex == -1)
+		if(buildingIndex == -1)
 		return false;
 
 	if(buildings[buildingIndex].breakable == false)
@@ -393,11 +391,13 @@ bool Game::CanModifyTile()
 	if(!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
 		return false;
 	
-	return !tile->occupied;
+	return tile != nullptr && !tile->occupied;
 }
 
-bool Game::CanRemoveBuilding()
+bool Game::CanRemoveBuilding(int buildingIndex)
 {
+	if(buildingIndex == -1)
+		return false;
 
 	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
 
@@ -410,7 +410,7 @@ bool Game::CanRemoveBuilding()
 		return false;
 	}
 
-	if(!IsItBreakableBuilding())
+	if(!IsItBreakableBuilding(buildingIndex))
 	{
 		TraceLog(LOG_WARNING, "Building Is not Breakable");
 		return false;
@@ -421,15 +421,15 @@ bool Game::CanRemoveBuilding()
     return true;
 }
 
-void Game::TryPlaceBuilding()
+bool Game::TryPlaceBuilding(int x, int y, BuildingType type)
 {
 	if (!CanModifyTile())
-		return;
+		return false;
 
 	Building building{};
 	building.breakable = true;
 	building.tint = WHITE;
-	building.type = BuildingType::Rock;
+	building.type = type;
 	building.x = hoveredTile.x;
 	building.y = hoveredTile.y;
 
@@ -439,19 +439,21 @@ void Game::TryPlaceBuilding()
 
 	tileMap.ChangeOccupancy((int)hoveredTile.x, (int)hoveredTile.y, true);
 
-	TraceLog(LOG_INFO, "Tile: %f, %f, Occupied: %s", hoveredTile.x, hoveredTile.y, 
-		tileMap.GetOccupancy((int)hoveredTile.x, (int)hoveredTile.y) ? "true" : "false");
+	// TraceLog(LOG_INFO, "Tile: %f, %f, Occupied: %s", hoveredTile.x, hoveredTile.y, 
+	//	 tileMap.GetOccupancy((int)hoveredTile.x, (int)hoveredTile.y) ? "true" : "false");
+	
+	return true;
 }
 
-void Game::TryRemoveBuilding()
+bool Game::TryRemoveBuilding(int x, int y)
 {
-	if(!CanRemoveBuilding()) 
-		return;
-
 	int buildingIndex = GetBuildingVectorIndex();
 
+	if(!CanRemoveBuilding(buildingIndex)) 
+		return false;
+
 	if (buildingIndex == -1)
-		return;
+		return false;
 
 	buildings.erase(buildings.begin() + buildingIndex);
 
@@ -459,8 +461,10 @@ void Game::TryRemoveBuilding()
 
 	tileMap.ChangeOccupancy((int)hoveredTile.x, (int)hoveredTile.y, false);
 
-	TraceLog(LOG_INFO, "Tile: %f, %f, Occupied: %s", hoveredTile.x, hoveredTile.y, 
-		tileMap.GetOccupancy((int)hoveredTile.x, (int)hoveredTile.y) ? "true" : "false");
+	// TraceLog(LOG_INFO, "Tile: %f, %f, Occupied: %s", hoveredTile.x, hoveredTile.y, 
+	//	 tileMap.GetOccupancy((int)hoveredTile.x, (int)hoveredTile.y) ? "true" : "false");
+
+	return true;
 }
 
 void Game::HandlePlaceBuildingWithMouse()
@@ -468,7 +472,7 @@ void Game::HandlePlaceBuildingWithMouse()
 	if (mouseMode == MouseMode::Normal || !IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 		return;
 	
-	TryPlaceBuilding();
+	TryPlaceBuilding(hoveredTile.x, hoveredTile.y, BuildingType::Rock);
 }
 
 void Game::HandleRemoveBuildingWithMouse()
@@ -476,7 +480,7 @@ void Game::HandleRemoveBuildingWithMouse()
 	if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) || mouseMode != MouseMode::BuildingPlacement)
 		return;
 
-	TryRemoveBuilding();
+	TryRemoveBuilding(hoveredTile.x, hoveredTile.y);
 }
 
 void Game::RenderBuildings()
