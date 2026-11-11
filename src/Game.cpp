@@ -91,8 +91,8 @@ void Game::HandleInput(float dt)
 	HandleMouseMode();
 
 	HandleTerrainEditing();
-	HandlePlaceBuilding();
-	HandleRemoveBuilding();
+	HandlePlaceBuildingWithMouse();
+	HandleRemoveBuildingWithMouse();
 
 }
 
@@ -391,10 +391,7 @@ bool Game::CanModifyTile()
 	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
 
 	if(!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
-	{
-		TraceLog(LOG_WARNING, "Tile Is not Inside of the Grid");
 		return false;
-	}
 	
 	return !tile->occupied;
 }
@@ -404,11 +401,8 @@ bool Game::CanRemoveBuilding()
 
 	Tile* tile = tileMap.GetTile((int)hoveredTile.x, (int)hoveredTile.y);
 
-	if(!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))
-	{
-		TraceLog(LOG_WARNING, "Tile Is not Inside");
+	if(!tileMap.IsInside((int)hoveredTile.x, (int)hoveredTile.y))	
 		return false;
-	}
 
 	if(!tile->occupied)
 	{
@@ -469,7 +463,7 @@ void Game::TryRemoveBuilding()
 		tileMap.GetOccupancy((int)hoveredTile.x, (int)hoveredTile.y) ? "true" : "false");
 }
 
-void Game::HandlePlaceBuilding()
+void Game::HandlePlaceBuildingWithMouse()
 {
 	if (mouseMode == MouseMode::Normal || !IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 		return;
@@ -477,7 +471,7 @@ void Game::HandlePlaceBuilding()
 	TryPlaceBuilding();
 }
 
-void Game::HandleRemoveBuilding()
+void Game::HandleRemoveBuildingWithMouse()
 {
 	if (!IsMouseButtonPressed(MOUSE_BUTTON_RIGHT) || mouseMode != MouseMode::BuildingPlacement)
 		return;

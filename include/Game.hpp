@@ -102,8 +102,8 @@ private:
 	void TryPlaceBuilding();
 	void TryRemoveBuilding();
 
-	void HandlePlaceBuilding();
-	void HandleRemoveBuilding();
+	void HandlePlaceBuildingWithMouse();
+	void HandleRemoveBuildingWithMouse();
 
 	void RenderBuildings();
 };
